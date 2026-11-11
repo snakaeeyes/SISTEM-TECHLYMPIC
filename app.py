@@ -2,7 +2,6 @@
 Face Recognition Attendance Register — Flask App
 ==================================================
 Sistem Kehadiran AI dengan kawalan peranan (Admin & User).
-Disambungkan ke pangkalan data MySQL (XAMPP).
 """
 
 import os
@@ -27,13 +26,28 @@ from attendance_store import (
 from models import db, User
 
 app = Flask(__name__)
-app.secret_key = "change-this-secret-key-in-production"
 
 # ==========================================
-# KONFIGURASI DATABASE MYSQL (XAMPP)
+# 1. KONFIGURASI SECRET KEY (UNTUK RENDER)
 # ==========================================
-# Pastikan anda telah mencipta database bernama 'face_attendance' di phpMyAdmin
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/face_attendance'
+# Render akan baca dari Environment Variables. Jika tiada, ia guna fallback.
+app.secret_key = os.environ.get("SECRET_KEY", "fallback_rahsia_untuk_local")
+
+# ==========================================
+# 2. KONFIGURASI DATABASE (RENDER vs LOCAL)
+# ==========================================
+# Di Render, kita akan letak URL database awan dalam 'DATABASE_URL'
+db_url = os.environ.get('DATABASE_URL')
+
+if db_url:
+    # Jika di Render, guna Database Awan (contoh: Supabase/Neon) dan tukar postgres:// ke postgresql://
+    if db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql://", 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+else:
+    # Jika di komputer local, guna XAMPP MySQL
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/face_attendance'
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # ------------------------------------------
 
@@ -54,7 +68,6 @@ def admin_required(f):
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated or current_user.role != 'admin':
             flash("Akses Ditolak. Anda bukan Admin.", "danger")
-            # Jika user biasa cuba akses, hantar ke halaman mark attendance user
             return redirect(url_for('user_recognize'))
         return f(*args, **kwargs)
     return decorated_function
@@ -83,12 +96,11 @@ def login():
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
-        selected_role = request.form.get("role") # Ambil nilai dari dropdown
+        selected_role = request.form.get("role")
         
         user = User.query.filter_by(username=username).first()
         
         if user and user.check_password(password):
-            # Semak sama ada peranan yang dipilih sepadan dengan pangkalan data
             if user.role != selected_role:
                 flash(f"Akaun ini didaftarkan sebagai {user.role.upper()}. Sila pilih peranan yang betul.", "danger")
                 return redirect(url_for('login'))
@@ -106,7 +118,6 @@ def login():
 
 @app.route("/register_admin", methods=["GET", "POST"])
 def register_admin():
-    # Jika sudah ada Admin di dalam sistem, hanya Admin yang login boleh tambah akaun baru
     if User.query.filter_by(role='admin').count() > 0 and (not current_user.is_authenticated or current_user.role != 'admin'):
         flash("Admin sudah wujud. Sila login sebagai Admin untuk menambah akaun baru.", "warning")
         return redirect(url_for('login'))
@@ -114,14 +125,12 @@ def register_admin():
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
-        selected_role = request.form.get("role", "user") # Ambil role dari dropdown
+        selected_role = request.form.get("role", "user")
 
-        # Semak jika username sudah wujud
         if User.query.filter_by(username=username).first():
             flash("Username sudah wujud.", "danger")
             return redirect(url_for('register_admin'))
             
-        # Cipta user baru mengikut role yang dipilih
         new_user = User(username=username, role=selected_role)
         new_user.set_password(password)
         
@@ -130,7 +139,6 @@ def register_admin():
         
         flash(f"Akaun {selected_role.upper()} berjaya didaftarkan. Sila login.", "success")
         
-        # Jika yang mendaftar adalah Admin, kekalkan di page register
         if current_user.is_authenticated and current_user.role == 'admin':
             return redirect(url_for('register_user'))
             
@@ -320,17 +328,14 @@ def edit_user():
     if not user:
         return jsonify({"ok": False, "msg": "Pengguna tidak dijumpai."}), 404
 
-    # Semak jika username baru sudah digunakan oleh orang lain
     if new_username != user.username:
         existing = User.query.filter_by(username=new_username).first()
         if existing:
             return jsonify({"ok": False, "msg": "Username sudah digunakan oleh pengguna lain."}), 400
 
-    # Kemas kini data
     user.username = new_username
     user.role = new_role
     
-    # Jika password diisi, kemas kini password
     if new_password and len(new_password) > 0:
         user.set_password(new_password)
 
@@ -344,7 +349,6 @@ def delete_user():
     data = request.get_json(silent=True) or {}
     user_id = data.get("id")
     
-    # Pastikan admin tak boleh padam diri sendiri
     if int(user_id) == current_user.id:
         return jsonify({"ok": False, "msg": "Anda tidak boleh memadam akaun anda sendiri."}), 400
         
@@ -431,14 +435,12 @@ def recognize_stop():
     recognize_state["active"] = False
     return jsonify({"ok": True})
 
-# --- ROUTE RESET (PADAM TERUS DARI CSV) ---
 @app.route("/recognize/reset", methods=["POST"])
 @login_required
 def recognize_reset():
     recognize_state["recent"] = []
-    delete_all_records() # Padam semua rekod di dalam attendance.csv
+    delete_all_records() 
     return jsonify({"ok": True})
-# ------------------------------------------
 
 @app.route("/attendance/download")
 @login_required
@@ -467,15 +469,17 @@ def attendance_delete_all():
     return jsonify({"ok": True})
 
 # ==========================================
-# INIT DB & RUN
+# INIT DB & RUN (UNTUK RENDER & LOCAL)
 # ==========================================
 with app.app_context():
     try:
         db.create_all()
-        print("Berjaya disambungkan ke pangkalan data MySQL!")
+        print("Database berjaya disambungkan!")
     except Exception as e:
         print(f"RALAT PANGKALAN DATA: {e}")
-        print("Sila pastikan XAMPP MySQL telah di-start dan database 'face_attendance' telah dicipta.")
 
 if __name__ == "__main__":
-    app.run(debug=True, threaded=True)
+    # Render akan berikan 'PORT', kita guna port tersebut. 
+    # Jika local, ia guna port 5000.
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False, threaded=True)
