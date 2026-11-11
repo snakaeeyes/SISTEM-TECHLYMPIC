@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}Register Account — NeuroFace AI{% endblock %}
+
+{% block content %}
+<style>
+  /* Memastikan body mengambil 100% tinggi skrin */
+  body {
+    background-color: #0b0f19;
+    background-image: 
+      radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+      radial-gradient(circle at 85% 30%, rgba(236, 72, 153, 0.15) 0%, transparent 50%);
+    color: #e2e8f0;
+    margin: 0;
+  }
+
+  /* Wrapper untuk letak kad di tengah */
+  .login-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .login-card {
+    background: rgba(17, 24, 39, 0.7);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1.25rem;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+    padding: 3rem 2.5rem;
+    width: 100%;
+    max-width: 400px;
+    animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .form-control, .form-select {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+  }
+  .form-control:focus, .form-select:focus {
+    background: rgba(0, 0, 0, 0.4);
+    border-color: #06b6d4;
+    box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+    color: #fff;
+  }
+  .form-select option {
+    background: #0f172a;
+    color: #fff;
+  }
+
+  .btn-success {
+    background: linear-gradient(90deg, #10b981, #34d399);
+    border: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+  .btn-success:hover {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+    transform: translateY(-2px);
+  }
+
+  .brand-title {
+    font-weight: 800;
+    background: linear-gradient(90deg, #a855f7, #ec4899, #06b6d4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+</style>
+
+<div class="login-wrapper">
+  <div class="login-card">
+    <h2 class="brand-title"><i class="bi bi-cpu"></i> NEUROFACE AI</h2>
+    <h5 class="text-center mb-4 text-white">Daftar Akaun Baru</h5>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show mb-3" role="alert" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #f87171;">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" style="filter: invert(1);"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('register_admin') }}">
+      <div class="mb-3">
+        <label class="form-label text-muted">Username</label>
+        <input type="text" name="username" class="form-control form-control-lg" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label text-muted">Password (Min 6 aksara)</label>
+        <input type="password" name="password" class="form-control form-control-lg" required>
+      </div>
+      
+      <!-- DROPDOWN PILIHAN PERANAN -->
+      <div class="mb-4">
+        <label class="form-label text-muted">Daftar Sebagai</label>
+        <select name="role" class="form-select form-select-lg" required>
+          <option value="" disabled selected>— Pilih Peranan —</option>
+          <option value="user">Pengguna Biasa (User)</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn btn-success btn-lg w-100">Daftar Akaun</button>
+    </form>
+    
+    <p class="text-center mt-4 mb-0" style="color: #64748b; font-size: 0.9rem;">
+      Sudah ada akaun? <a href="{{ url_for('login') }}" style="color: #06b6d4; text-decoration: none;">Login sini</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

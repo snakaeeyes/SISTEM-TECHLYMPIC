@@ -1,0 +1,310 @@
+{% extends "base.html" %}
+{% block title %}Home — NEUROFACE TECHNOLOGY{% endblock %}
+
+{% block content %}
+<style>
+  /* =========================================
+     TEMA POSTER SMARTATTEND AI (CYBERPUNK BLUE)
+     ========================================= */
+  :root {
+    --primary-cyan: #00e5ff;   /* Cyan Neon Terang */
+    --primary-blue: #0066ff;   /* Biru Elektrik */
+    --dark-bg: #030814;        /* Biru Gelap Hampir Hitam */
+    --card-bg: rgba(10, 25, 50, 0.7);
+  }
+
+  body {
+    background-color: var(--dark-bg);
+    background-image: 
+      radial-gradient(circle at 15% 50%, rgba(0, 229, 255, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 85% 30%, rgba(0, 102, 255, 0.1) 0%, transparent 50%);
+    color: #e2e8f0;
+    overflow-x: hidden;
+  }
+
+  /* Latar belakang animasi bergerak (Orbs) */
+  .bg-orbs {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.3;
+    animation: float 10s infinite ease-in-out alternate;
+  }
+  .orb-1 {
+    width: 400px; height: 400px;
+    background: var(--primary-blue);
+    top: -100px; left: -100px;
+    animation-delay: 0s;
+  }
+  .orb-2 {
+    width: 300px; height: 300px;
+    background: var(--primary-cyan);
+    bottom: -50px; right: -50px;
+    animation-delay: -5s;
+  }
+  .orb-3 {
+    width: 250px; height: 250px;
+    background: #0044ff;
+    top: 40%; left: 50%;
+    animation-duration: 15s;
+    animation-delay: -2s;
+  }
+
+  @keyframes float {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(50px, 50px) scale(1.2); }
+  }
+
+  /* =========================================
+     HERO SECTION
+     ========================================= */
+  .hero-card {
+    background: linear-gradient(135deg, rgba(0, 25, 60, 0.85) 0%, rgba(0, 10, 30, 0.9) 100%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(0, 229, 255, 0.2);
+    border-radius: 1.25rem;
+    padding: 3rem 2.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 50px -12px rgba(0, 102, 255, 0.3);
+  }
+  .hero-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: -100%; width: 50%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.1), transparent);
+    transform: skewX(-20deg);
+    animation: shine 6s infinite;
+  }
+  @keyframes shine {
+    0% { left: -100%; }
+    20% { left: 200%; }
+    100% { left: 200%; }
+  }
+  
+  .hero-card h1 {
+    font-weight: 800;
+    /* Gradien teks putih ke Cyan */
+    background: linear-gradient(to right, #ffffff, var(--primary-cyan), var(--primary-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: pulse-text 3s infinite alternate;
+  }
+  @keyframes pulse-text {
+    0% { filter: drop-shadow(0 0 5px rgba(0, 229, 255, 0.5)); }
+    100% { filter: drop-shadow(0 0 20px rgba(0, 102, 255, 0.8)); }
+  }
+
+  .hero-card p { color: #a0c4e8; }
+
+  /* Butang Futuristik */
+  .btn-futuristic {
+    background: rgba(0, 229, 255, 0.05);
+    border: 1px solid rgba(0, 229, 255, 0.3);
+    color: var(--primary-cyan);
+    border-radius: 0.75rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+  }
+  .btn-futuristic::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 0%; height: 100%;
+    background: linear-gradient(90deg, var(--primary-blue), var(--primary-cyan));
+    transition: all 0.3s ease;
+    z-index: -1;
+  }
+  .btn-futuristic:hover::before { width: 100%; }
+  .btn-futuristic:hover {
+    border-color: transparent;
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.5);
+    transform: translateY(-3px);
+    color: #000; /* Teks hitam apabila hover agar mudah dibaca */
+    font-weight: 700;
+  }
+
+  /* =========================================
+     STAT & PEOPLE CARDS (Glassmorphism)
+     ========================================= */
+  .stat-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(0, 229, 255, 0.1);
+    border-radius: 1rem;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+  }
+  .stat-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(0, 229, 255, 0.4);
+    box-shadow: 0 15px 40px -10px rgba(0, 229, 255, 0.2);
+  }
+  
+  .stat-icon {
+    width: 52px; height: 52px;
+    display: grid; place-items: center;
+    border-radius: 0.85rem;
+    font-size: 1.5rem;
+    background: rgba(0, 229, 255, 0.1);
+    color: var(--primary-cyan);
+    border: 1px solid rgba(0, 229, 255, 0.2);
+    box-shadow: 0 0 15px rgba(0, 229, 255, 0.1);
+  }
+  
+  .card-title { color: #f8fafc; }
+  .text-muted { color: #8bb7f0 !important; }
+
+  /* Senarai Nama (Neon Chips) */
+  .person-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(0, 229, 255, 0.05);
+    border: 1px solid rgba(0, 229, 255, 0.15);
+    border-radius: 999px;
+    padding: 0.35rem 0.9rem;
+    margin: 0.3rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #e2e8f0;
+    transition: all 0.2s ease;
+  }
+  .person-chip:hover {
+    background: rgba(0, 229, 255, 0.15);
+    border-color: var(--primary-cyan);
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
+    transform: scale(1.05);
+  }
+  .person-chip .avatar {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-cyan));
+    color: #fff;
+    display: grid; place-items: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    box-shadow: 0 0 8px rgba(0, 229, 255, 0.5);
+  }
+
+  .empty-illustration {
+    font-size: 3rem;
+    opacity: 0.7;
+    animation: float-icon 3s infinite ease-in-out;
+    display: inline-block;
+  }
+  @keyframes float-icon {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  /* Animasi masuk */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fade-in-up { animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .delay-1 { animation-delay: 0.15s; }
+  .delay-2 { animation-delay: 0.3s; }
+</style>
+
+<!-- Latar Belakang Animasi -->
+<div class="bg-orbs">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<!-- Hero Section -->
+<div class="hero-card fade-in-up mb-5">
+  <h1 class="display-5 fw-bold mb-3"><i class="bi bi-upc-scan me-2"></i> SMARTATTEND AI</h1>
+  <p class="fs-5 mb-4" style="max-width: 800px; opacity: 0.95; line-height: 1.6;">
+    Transformasi pengurusan kehadiran melalui teknologi Artificial Intelligence (AI) dan Face Recognition. Daftarkan wajah pengguna sekali sahaja, kemudian sistem akan mengesan dan mengenal pasti wajah secara automatik melalui kamera komputer riba serta merekodkan kehadiran dengan pantas dan sistematik. Dilengkapi teknologi Python, Flask dan OpenCV bagi mewujudkan pengurusan kehadiran yang lebih pintar, cekap dan moden.
+  </p>
+  <div class="d-flex flex-wrap gap-3">
+    <a href="{{ url_for('register') }}" class="btn btn-futuristic btn-lg px-4">
+      <i class="bi bi-person-plus-fill me-2"></i> 1. Register Face
+    </a>
+  </div>
+</div>
+
+<!-- Status & People -->
+<div class="row g-4">
+  <!-- Status Card -->
+  <div class="col-lg-5">
+    <div class="card stat-card h-100 fade-in-up delay-1">
+      <div class="card-body p-4">
+        <div class="d-flex align-items-center gap-3 mb-4">
+          <div class="stat-icon"><i class="bi bi-activity"></i></div>
+          <div>
+            <h5 class="card-title mb-0">System Status</h5>
+            <small class="text-muted">Live training & registry info</small>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center py-3 border-bottom" style="border-color: rgba(0, 229, 255, 0.1) !important;">
+          <span class="text-muted">Status Model AI</span>
+          {% if model_loaded %}
+            <span class="badge rounded-pill px-3 py-2" style="background: rgba(0, 229, 255, 0.15); color: var(--primary-cyan); border: 1px solid rgba(0, 229, 255, 0.3); box-shadow: 0 0 10px rgba(0,229,255,0.2);">
+              <i class="bi bi-check-circle-fill me-1"></i> READY
+            </span>
+          {% else %}
+            <span class="badge rounded-pill px-3 py-2" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3);">
+              <i class="bi bi-exclamation-triangle-fill me-1"></i> OFFLINE
+            </span>
+          {% endif %}
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center py-3">
+          <span class="text-muted">Pengguna Berdaftar</span>
+          <span class="fw-bold fs-4" style="color: var(--primary-cyan); text-shadow: 0 0 10px rgba(0, 229, 255, 0.5);">{{ people|length }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- People Card -->
+  <div class="col-lg-7">
+    <div class="card stat-card h-100 fade-in-up delay-2">
+      <div class="card-body p-4">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="stat-icon" style="background: rgba(0, 102, 255, 0.15); color: #0066ff; border-color: rgba(0, 102, 255, 0.3); box-shadow: 0 0 15px rgba(0, 102, 255, 0.2);">
+            <i class="bi bi-people-fill"></i>
+          </div>
+          <div>
+            <h5 class="card-title mb-0">Registered People</h5>
+            <small class="text-muted">Pangkalan data pengenalan wajah</small>
+          </div>
+        </div>
+
+        {% if people %}
+          <div class="d-flex flex-wrap mt-2">
+            {% for p in people %}
+              <span class="person-chip">
+                <span class="avatar">{{ p[0]|upper }}</span>
+                {{ p }}
+              </span>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-4">
+            <div class="empty-illustration mb-2">👤</div>
+            <p class="text-muted mb-0">Belum ada pengguna berdaftar.<br>Mulakan dengan mendaftar wajah baru!</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

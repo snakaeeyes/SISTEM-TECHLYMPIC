@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Tambah Akaun — NeuroFace AI{% endblock %}
+
+{% block content %}
+<style>
+  :root {
+    --primary-cyan: #00e5ff;
+    --primary-blue: #0066ff;
+    --dark-bg: #030814;
+  }
+  body {
+    background-color: var(--dark-bg);
+    background-image: 
+      radial-gradient(circle at 15% 50%, rgba(0, 229, 255, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 85% 30%, rgba(0, 102, 255, 0.1) 0%, transparent 50%);
+    color: #e2e8f0;
+    margin: 0;
+  }
+  .login-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .login-card {
+    background: rgba(10, 25, 50, 0.7);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(0, 229, 255, 0.15);
+    border-radius: 1.25rem;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+    padding: 3rem 2.5rem;
+    width: 100%;
+    max-width: 400px;
+    animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .form-control, .form-select {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(0, 229, 255, 0.2);
+    color: #fff;
+  }
+  .form-control:focus, .form-select:focus {
+    background: rgba(0, 0, 0, 0.4);
+    border-color: var(--primary-cyan);
+    box-shadow: 0 0 15px rgba(0, 229, 255, 0.3);
+    color: #fff;
+  }
+  .form-select option { background: #030814; color: #fff; }
+  
+  .btn-success {
+    background: linear-gradient(90deg, var(--primary-blue), var(--primary-cyan));
+    border: none;
+    font-weight: 700;
+    color: #000;
+    transition: all 0.3s ease;
+  }
+  .btn-success:hover {
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.5);
+    transform: translateY(-2px);
+    color: #000;
+  }
+  .brand-title {
+    font-weight: 800;
+    background: linear-gradient(90deg, #ffffff, var(--primary-cyan), var(--primary-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-align: center;
+    margin-bottom: 2rem;
+    text-shadow: 0 0 20px rgba(0, 229, 255, 0.3);
+  }
+</style>
+
+<div class="login-wrapper">
+  <div class="login-card">
+    <h2 class="brand-title"><i class="bi bi-person-plus-fill"></i> TAMBAH AKAUN</h2>
+    <h5 class="text-center mb-4 text-white">Daftar Pengguna Baru</h5>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show mb-3" role="alert" style="background: rgba(0, 229, 255, 0.1); border: 1px solid rgba(0, 229, 255, 0.3); color: var(--primary-cyan);">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" style="filter: invert(1);"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('register_user') }}">
+      <div class="mb-3">
+        <label class="form-label" style="color: #a0c4e8;">Username</label>
+        <input type="text" name="username" class="form-control form-control-lg" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label" style="color: #a0c4e8;">Password</label>
+        <input type="password" name="password" class="form-control form-control-lg" required>
+      </div>
+      
+      <div class="mb-4">
+        <label class="form-label" style="color: #a0c4e8;">Peranan (Role)</label>
+        <select name="role" class="form-select form-select-lg" required>
+          <option value="user" selected>Pengguna Biasa (User)</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn btn-success btn-lg w-100">Daftar Akaun</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

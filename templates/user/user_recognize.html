@@ -1,0 +1,522 @@
+{% extends "base.html" %}
+{% block title %}Mark Attendance{% endblock %}
+
+{% block content %}
+<style>
+  :root {
+    --primary-glow: #6366f1;
+    --secondary-glow: #ec4899;
+    --cyan-glow: #06b6d4;
+    --dark-bg: #0b0f19;
+    --card-bg: rgba(17, 24, 39, 0.7);
+  }
+
+  body {
+    background-color: var(--dark-bg);
+    background-image: 
+      radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+      radial-gradient(circle at 85% 30%, rgba(236, 72, 153, 0.15) 0%, transparent 50%);
+    color: #e2e8f0;
+    overflow-x: hidden;
+  }
+
+  .bg-orbs {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.3;
+    animation: float 10s infinite ease-in-out alternate;
+  }
+  .orb-1 { width: 400px; height: 400px; background: var(--primary-glow); top: -100px; left: -100px; }
+  .orb-2 { width: 300px; height: 300px; background: var(--secondary-glow); bottom: -50px; right: -50px; animation-delay: -5s; }
+  
+  @keyframes float {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(50px, 50px) scale(1.2); }
+  }
+
+  .page-header {
+    background: linear-gradient(135deg, rgba(6, 78, 59, 0.8) 0%, rgba(15, 23, 42, 0.8) 50%, rgba(49, 46, 129, 0.8) 100%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border-radius: 1.25rem;
+    padding: 2rem 2rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 40px -12px rgba(16, 185, 129, 0.3);
+  }
+  .page-header::before {
+    content: "";
+    position: absolute;
+    width: 280px; height: 280px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(6, 182, 212, 0.4) 0%, transparent 70%);
+    top: -110px; right: -70px;
+    z-index: 0;
+  }
+  .page-header h2, .page-header p { position: relative; z-index: 1; }
+  .page-header h2 { font-weight: 800; text-shadow: 0 0 20px rgba(6, 182, 212, 0.5); }
+
+  .panel {
+    background: var(--card-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1rem;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+  }
+  .panel:hover {
+    border-color: rgba(99, 102, 241, 0.4);
+    box-shadow: 0 15px 40px -10px rgba(99, 102, 241, 0.3);
+  }
+
+  .panel-icon {
+    width: 44px; height: 44px;
+    display: grid; place-items: center;
+    border-radius: 0.75rem;
+    font-size: 1.15rem;
+    background: rgba(6, 182, 212, 0.15);
+    color: var(--cyan-glow);
+    border: 1px solid rgba(6, 182, 212, 0.3);
+    box-shadow: 0 0 15px rgba(6, 182, 212, 0.2);
+  }
+
+  .card-title, h5 { color: #f8fafc; }
+  .text-muted { color: #94a3b8 !important; }
+
+  .form-control, .form-select {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+  }
+  .form-control:focus, .form-select:focus {
+    background: rgba(0, 0, 0, 0.4);
+    border-color: var(--cyan-glow);
+    box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+    color: #fff;
+  }
+  .form-select option { background: #0f172a; color: #fff; }
+  .form-label { color: #cbd5e1; }
+
+  .btn-primary {
+    background: linear-gradient(90deg, var(--cyan-glow), var(--primary-glow));
+    border: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+  .btn-primary:hover {
+    box-shadow: 0 0 20px rgba(6, 182, 212, 0.5);
+    transform: translateY(-2px);
+  }
+  .btn-success {
+    background: linear-gradient(90deg, #10b981, #34d399);
+    border: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+  .btn-success:hover {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+    transform: translateY(-2px);
+  }
+  .btn-outline-primary {
+    border-color: rgba(99, 102, 241, 0.5);
+    color: #a855f7;
+  }
+  .btn-outline-primary:hover {
+    background: rgba(99, 102, 241, 0.2);
+    border-color: #a855f7;
+    color: #fff;
+  }
+  .btn-outline-danger {
+    border-color: rgba(239, 68, 68, 0.5);
+    color: #f87171;
+  }
+  .btn-outline-danger:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: #ef4444;
+    color: #fff;
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+  }
+
+  #video { background: #000; min-height: 300px; object-fit: cover; }
+  #video-wrapper {
+    position: relative;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    border: 2px solid rgba(6, 182, 212, 0.3);
+    box-shadow: 0 0 25px rgba(6, 182, 212, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .live-badge {
+    position: absolute;
+    top: 12px; left: 12px;
+    background: rgba(220, 38, 38, 0.9);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 0.3rem 0.6rem;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    z-index: 2;
+    box-shadow: 0 0 15px rgba(220, 38, 38, 0.6);
+  }
+  .live-dot {
+    width: 8px; height: 8px;
+    background: #fff;
+    border-radius: 50%;
+    animation: pulse 1.2s infinite;
+  }
+  @keyframes pulse {
+    0% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(1.3); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  .form-range::-webkit-slider-thumb {
+    background: var(--cyan-glow);
+    box-shadow: 0 0 10px rgba(6, 182, 212, 0.8);
+  }
+
+  .summary-chip {
+    flex: 1 1 120px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0.75rem;
+    padding: 0.65rem 0.9rem;
+  }
+  .summary-chip .label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #64748b;
+    font-weight: 600;
+  }
+  .summary-chip .value {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--cyan-glow);
+    text-shadow: 0 0 8px rgba(6, 182, 212, 0.4);
+  }
+
+  .list-group-item {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #e2e8f0;
+    border-radius: 0.5rem !important;
+    margin-bottom: 0.5rem;
+    transition: all 0.2s ease;
+  }
+  .list-group-item:hover {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.3);
+  }
+  .badge.bg-success {
+    background: rgba(16, 185, 129, 0.2) !important;
+    color: #34d399 !important;
+    border: 1px solid rgba(16, 185, 129, 0.4);
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fade-in-up { animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+</style>
+
+<div class="bg-orbs">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+</div>
+
+<div class="page-header mb-4 fade-in-up">
+  <h2 class="fw-bold mb-1"><i class="bi bi-person-badge me-2"></i>User Attendance</h2>
+  <p class="mb-0" style="opacity: 0.85;">
+    Kamera akan mengenali wajah dan menandakan kehadiran anda secara automatik.
+  </p>
+</div>
+
+{% if not model_loaded %}
+  <div class="alert alert-warning d-flex align-items-center gap-2 fade-in-up" style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); color: #fbbf24;">
+    <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+    <div>
+      Tiada model terlatih lagi. Sila hubungi Admin untuk mendaftarkan wajah.
+    </div>
+  </div>
+{% else %}
+<div class="row g-4 fade-in-up" style="animation-delay: 0.1s;">
+
+  <div class="col-lg-7">
+    <!-- Atur Sesi & Kelas -->
+    <div class="card panel p-3 mb-4">
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <div class="panel-icon"><i class="bi bi-calendar-event"></i></div>
+        <div>
+          <h5 class="mb-0">Atur Sesi & Kelas</h5>
+          <small class="text-muted">Tetapkan butiran kelas untuk rekod kehadiran</small>
+        </div>
+      </div>
+
+      <form id="sessionForm" class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Kelas / Subjek</label>
+          <select id="classSelect" class="form-select">
+            <option value="">— Pilih Kelas —</option>
+            <option value="Kelas A">Kelas A</option>
+            <option value="Kelas B">Kelas B</option>
+            <option value="Kelas C">Kelas C</option>
+            <option value="Kuliah Pagi">Kuliah Pagi</option>
+            <option value="Kuliah Petang">Kuliah Petang</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Tarikh</label>
+          <input type="date" id="dateInput" class="form-control" style="color-scheme: dark;">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Masa Mula</label>
+          <input type="time" id="startTime" class="form-control" value="08:00" style="color-scheme: dark;">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Masa Tamat</label>
+          <input type="time" id="endTime" class="form-control" value="10:00" style="color-scheme: dark;">
+        </div>
+        <div class="col-12">
+          <button type="button" id="saveSessionBtn" class="btn btn-primary w-100">
+            <i class="bi bi-check2-circle me-1"></i> Simpan Butiran Sesi
+          </button>
+        </div>
+      </form>
+
+      <div class="session-summary d-flex gap-2 mt-3" id="sessionSummary">
+        <div class="summary-chip">
+          <div class="label">Kelas</div>
+          <div class="value" id="sClass">—</div>
+        </div>
+        <div class="summary-chip">
+          <div class="label">Tarikh</div>
+          <div class="value" id="sDate">—</div>
+        </div>
+        <div class="summary-chip">
+          <div class="label">Masa</div>
+          <div class="value" id="sTime">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Threshold -->
+    <div class="card panel p-3 mb-3">
+      <label class="form-label fw-semibold">
+        <i class="bi bi-sliders me-1"></i> Recognition strictness
+        <span class="text-muted small">(lower = stricter match)</span>
+      </label>
+      <input type="range" id="threshold" min="30" max="120" value="70" class="form-range">
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="text-muted small">Current: <span id="thresholdVal" class="fw-bold" style="color: var(--cyan-glow);">70</span></span>
+        <button id="applyBtn" class="btn btn-sm btn-outline-primary" disabled>
+          <i class="bi bi-arrow-clockwise me-1"></i> Apply / Restart Feed
+        </button>
+      </div>
+    </div>
+
+    <!-- Kamera -->
+    <div class="card panel p-3">
+      <div id="video-wrapper" class="mb-3">
+        <span class="live-badge" id="liveBadge" style="display: none;"><span class="live-dot"></span> LIVE</span>
+        <img id="video" class="img-fluid w-100 d-block" alt="camera feed" src="" style="display: none;">
+        <div id="videoPlaceholder" class="position-absolute text-center" style="color: #64748b;">
+          <i class="bi bi-camera-video-off" style="font-size: 3rem; opacity: 0.5;"></i>
+          <p class="mt-2 mb-0 fw-semibold">Kamera Dimatikan</p>
+        </div>
+      </div>
+      
+      <div class="d-flex gap-2">
+        <button id="startBtn" class="btn btn-success"><i class="bi bi-play-circle me-1"></i> Start Camera</button>
+        <button id="stopBtn" class="btn btn-outline-danger" style="display: none;"><i class="bi bi-stop-circle me-1"></i> Stop Camera</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card panel p-4 h-100">
+      <!-- Tajuk & Butang Reset -->
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0"><i class="bi bi-check2-square me-2" style="color: #34d399;"></i> Marked present</h5>
+        <button id="resetRecentBtn" class="btn btn-outline-danger btn-sm" title="Padam semua rekod">
+          <i class="bi bi-trash3"></i> Reset
+        </button>
+      </div>
+
+      <ul id="recentList" class="list-group list-group-flush"></ul>
+      <p id="emptyMsg" class="text-muted mt-3 text-center">Belum ada yang ditandakan.</p>
+    </div>
+  </div>
+
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if model_loaded %}
+<script>
+  const video = document.getElementById('video');
+  const videoPlaceholder = document.getElementById('videoPlaceholder');
+  const liveBadge = document.getElementById('liveBadge');
+  const thresholdInput = document.getElementById('threshold');
+  const thresholdVal = document.getElementById('thresholdVal');
+  const applyBtn = document.getElementById('applyBtn');
+  
+  const startBtn = document.getElementById('startBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  const resetRecentBtn = document.getElementById('resetRecentBtn');
+
+  const classSelect = document.getElementById('classSelect');
+  const dateInput = document.getElementById('dateInput');
+  const startTime = document.getElementById('startTime');
+  const endTime = document.getElementById('endTime');
+  const saveSessionBtn = document.getElementById('saveSessionBtn');
+  const sClass = document.getElementById('sClass');
+  const sDate = document.getElementById('sDate');
+  const sTime = document.getElementById('sTime');
+
+  const today = new Date().toISOString().split('T')[0];
+  dateInput.value = today;
+
+  function renderSession(s) {
+    sClass.textContent = s.className || '—';
+    sDate.textContent = s.date || '—';
+    sTime.textContent = (s.start && s.end) ? `${s.start} – ${s.end}` : '—';
+  }
+
+  function loadSession() {
+    const saved = JSON.parse(localStorage.getItem('attendanceSession') || '{}');
+    if (saved.className) classSelect.value = saved.className;
+    if (saved.date) dateInput.value = saved.date;
+    if (saved.start) startTime.value = saved.start;
+    if (saved.end) endTime.value = saved.end;
+    renderSession(saved);
+  }
+
+  saveSessionBtn.addEventListener('click', () => {
+    if (!classSelect.value) {
+      alert('Sila pilih kelas terlebih dahulu.');
+      return;
+    }
+    const session = {
+      className: classSelect.value,
+      date: dateInput.value,
+      start: startTime.value,
+      end: endTime.value,
+    };
+    localStorage.setItem('attendanceSession', JSON.stringify(session));
+    renderSession(session);
+
+    saveSessionBtn.innerHTML = '<i class="bi bi-check2-circle me-1"></i> Tersimpan ✓';
+    saveSessionBtn.classList.remove('btn-primary');
+    saveSessionBtn.style.background = 'linear-gradient(90deg, #10b981, #34d399)';
+    
+    setTimeout(() => {
+      saveSessionBtn.innerHTML = '<i class="bi bi-check2-circle me-1"></i> Simpan Butiran Sesi';
+      saveSessionBtn.classList.add('btn-primary');
+      saveSessionBtn.style.background = '';
+    }, 1500);
+  });
+
+  loadSession();
+
+  thresholdInput.addEventListener('input', () => thresholdVal.innerText = thresholdInput.value);
+
+  startBtn.addEventListener('click', () => {
+    videoPlaceholder.style.display = 'none';
+    startBtn.style.display = 'none';
+    video.style.display = 'block';
+    stopBtn.style.display = 'inline-block';
+    liveBadge.style.display = 'flex';
+    video.src = "{{ url_for('recognize_video_feed') }}?threshold=" + thresholdInput.value + "&t=" + Date.now();
+    applyBtn.disabled = false;
+  });
+
+  stopBtn.addEventListener('click', () => {
+    fetch("{{ url_for('recognize_stop') }}", {method: "POST"});
+    video.src = "";
+    video.style.display = 'none';
+    stopBtn.style.display = 'none';
+    liveBadge.style.display = 'none';
+    videoPlaceholder.style.display = 'block';
+    startBtn.style.display = 'inline-block';
+    applyBtn.disabled = true;
+  });
+
+  applyBtn.addEventListener('click', () => {
+    if (!video.src) return;
+    video.src = "{{ url_for('recognize_video_feed') }}?threshold=" + thresholdInput.value + "&t=" + Date.now();
+  });
+
+  // === FUNGSI RESET (PADAM DARI DATABASE/CSV) ===
+  resetRecentBtn.addEventListener('click', async () => {
+    if (!confirm('Amaran: Ini akan memadam SEMUA rekod kehadiran secara kekal. Teruskan?')) return;
+    
+    resetRecentBtn.disabled = true;
+    resetRecentBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+    
+    try {
+      const res = await fetch("{{ url_for('recognize_reset') }}", { method: "POST" });
+      if (res.ok) {
+        document.getElementById('recentList').innerHTML = '';
+        document.getElementById('emptyMsg').style.display = 'block';
+      }
+    } catch (err) {
+      alert('Gagal memadam rekod.');
+    } finally {
+      resetRecentBtn.disabled = false;
+      resetRecentBtn.innerHTML = '<i class="bi bi-trash3"></i> Reset';
+    }
+  });
+
+  // === KEMAS KINI PAPARAN ===
+  function pollRecent() {
+    fetch("{{ url_for('recognize_recent') }}")
+      .then(r => r.json())
+      .then(data => {
+        const list = document.getElementById('recentList');
+        const emptyMsg = document.getElementById('emptyMsg');
+        list.innerHTML = '';
+        if (data.recent.length === 0) {
+          emptyMsg.style.display = 'block';
+        } else {
+          emptyMsg.style.display = 'none';
+          data.recent.forEach(name => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item d-flex justify-content-between align-items-center';
+            li.innerHTML = `<span class="fw-semibold">${name}</span>`;
+            const badge = document.createElement('span');
+            badge.className = 'badge bg-success rounded-pill px-3';
+            badge.innerHTML = '✔ Present';
+            li.appendChild(badge);
+            list.appendChild(li);
+          });
+        }
+      });
+  }
+  setInterval(pollRecent, 1000);
+  pollRecent();
+</script>
+{% endif %}
+{% endblock %}
