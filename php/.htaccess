@@ -1,0 +1,1 @@
+<FilesMatch "^(bootstrap\.php|schema\.sql)$">\n  Require all denied\n</FilesMatch>\n
