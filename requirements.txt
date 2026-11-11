@@ -1,5 +1,6 @@
-Flask==3.0.3
-opencv-contrib-python==4.10.0.84
-numpy>=1.26.4
-pandas>=2.2.2
-Pillow>=10.3.0
+Flask
+Flask-Login
+gunicorn
+opencv-python-headless
+numpy
+Pillow
