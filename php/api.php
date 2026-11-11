@@ -55,6 +55,19 @@ try {
    $q=db()->prepare("INSERT INTO users(username,password_hash,role) VALUES(?,?,'user')");try{$q->execute([$name,password_hash($pass,PASSWORD_DEFAULT)]);}catch(PDOException $e){json_response(['ok'=>false,'message'=>'Nama pengguna sudah digunakan.'],409);}json_response(['ok'=>true,'message'=>'Akaun pengguna berjaya ditambah.']);
   case 'user_delete':
    require_admin();$id=(int)($data['id']??0);if($id===(int)current_user()['id'])json_response(['ok'=>false,'message'=>'Tidak boleh memadam akaun sendiri.'],422);$q=db()->prepare("DELETE FROM users WHERE id=? AND role='user'");$q->execute([$id]);json_response(['ok'=>$q->rowCount()>0,'message'=>'Akaun dipadam.']);
+
+  case 'user_update':
+   require_admin();$id=(int)($data['id']??0);$name=trim((string)($data['username']??''));
+   if($id<1||strlen($name)<3)json_response(['ok'=>false,'message'=>'Nama pengguna minimum 3 aksara.'],422);
+   try{$q=db()->prepare("UPDATE users SET username=? WHERE id=? AND role='user'");$q->execute([$name,$id]);}catch(PDOException $e){json_response(['ok'=>false,'message'=>'Nama pengguna telah digunakan.'],409);}
+   json_response(['ok'=>true,'message'=>'Nama pengguna dikemas kini.']);
+  case 'attendance_delete':
+   require_admin();$q=db()->prepare('DELETE FROM attendance WHERE id=?');$q->execute([(int)($data['id']??0)]);json_response(['ok'=>$q->rowCount()>0,'message'=>'Rekod kehadiran dipadam.']);
+  case 'export_csv':
+   $u=require_login();$sql='SELECT p.full_name,a.attendance_date,a.attendance_time,a.confidence FROM attendance a JOIN people p ON p.id=a.person_id';$params=[];
+   if($u['role']!=='admin'){$sql.=' WHERE p.user_id=?';$params[]=$u['id'];}$sql.=' ORDER BY a.attendance_date DESC,a.attendance_time DESC';
+   $q=db()->prepare($sql);$q->execute($params);header('Content-Type: text/csv; charset=utf-8');header('Content-Disposition: attachment; filename="smartattend-kehadiran.csv"');
+   $out=fopen('php://output','w');fwrite($out,"\xEF\xBB\xBF");fputcsv($out,['Nama','Tarikh','Masa','Skor padanan']);while($row=$q->fetch())fputcsv($out,$row);fclose($out);exit;
   default: json_response(['ok'=>false,'message'=>'Tindakan tidak dikenali.'],404);
  }
 } catch(Throwable $e) { $code=http_response_code(); if($code<400)$code=500; json_response(['ok'=>false,'message'=>$code===500?'Ralat pelayan. Semak konfigurasi database.':$e->getMessage()],$code); }
